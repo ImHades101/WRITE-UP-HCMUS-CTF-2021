@@ -14,4 +14,4 @@
 # Escapeme
 * Connect to server we will see the flag.txt. But we must root to cat it. Find some thing in server help us become root by command `sudo -l`.
 * After login as root, we `cat flag`: 
-* 
+* ![flag](https://github.com/ImHades101/WRITE-UP-HCMUS-CTF-2021/blob/main/misc/flagEscapeme.png)
