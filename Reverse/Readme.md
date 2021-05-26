@@ -53,3 +53,46 @@ me(var0, dh(SHA-256, var1), 58150e58ae8a7275fcce5aea7d983ab5654f549cbeecedec27c8
 -----> HCMUS-CTF{not_so_weird_hehexd}
 ```
 > FLAG: HCMUS-CTF{not_so_weird_hehexd}
+
+# Mix_VM
++ Load vào IDA và phân tích, tôi thấy hành động chính của chương trình là chia đoạn **input** thành từng khối, mỗi khối 4 byte và xử lý theo luồng và so sánh với chuỗi trong chương trình tạm gọi là `cipher`: ( `input` ^ `cipher trước đó` ) + `0x13371337` == `cipher`.
++ Debug chương trình lấy được khối của `cipher` : `{0xdeadbeef, 0x9f1810de, 0xde9250c4, 0x95323eb9,  0x3906b0c, 0x7e1a318a, 0x1b7c6a1b, 0x873f48ad, 0xfb844c29, 0xa31e3c94, 0xf9e6502, 0x7c282aa9, 0x147c5f12}`
++ Bài toán ta có:
+```
+(cipher[1] – 0x13371337) ^ cipher[0] = input[0] 
+(cipher[2] – 0x13371337) ^ cipher[1] = input[4]
+(cipher[3] – 0x13371337) ^ cipher[2] = input[8]
+(cipher[4] – 0x13371337) ^ cipher[3] = input[12]
+(cipher[5] – 0x13371337) ^ cipher[4] = input[16]
+(cipher[6] – 0x13371337) ^ cipher[5] = input[20]
+(cipher[7] – 0x13371337) ^ cipher[6] = input[24]
+(cipher[8] – 0x13371337) ^ cipher[7] = input[28]
+(cipher[9] – 0x13371337) ^ cipher[8] = input[32]
+(cipher[10] – 0x13371337) ^ cipher[9] = input[36]
+(cipher[11] – 0x13371337) ^ cipher[10] = input[40]
+(cipher[12] – 0x13371337) ^ cipher[11] = input[44]
+(cipher[13] – 0x13371337) ^ cipher[12] = input[48]
+```
++ CODE (C):
+```c
+#include <stdio.h>
+unsigned int cipher[13] = {0xdeadbeef, 0x9f1810de, 0xde9250c4, 0x95323eb9, 0x3906b0c, 0x7e1a318a, 0x1b7c6a1b, 0x873f48ad, 0xfb844c29, 0xa31e3c94, 0xf9e6502, 0x7c282aa9, 0x147c5f12};
+int main()
+{
+	int i=0;
+	unsigned int key = 0x13371337;
+	char input[4] = {0};
+	for (;i<12;i++)
+	{
+		unsigned int temp = cipher[i+1] - key;
+		temp ^= cipher[i];
+		input[3] = (temp&0xff000000) >> 24;
+		input[2] = (temp&0xff0000) >> 16;
+		input[1] = (temp&0xff00) >> 8;
+		input[0] = (temp&0xff);
+		printf("%c%c%c%c",(char) input[0],(char)input[1],(char)input[2],(char)input[3]);
+	}
+	return 0;
+}
+```
+> FLAG: HCMUS-CTF{i_like_using_vm_to_protect_my_program}
